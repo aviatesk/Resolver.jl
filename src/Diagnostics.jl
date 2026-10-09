@@ -29,7 +29,7 @@ using ..Resolver: Resolver, SAT, Problem, Universe, PicoSAT, Relation,
     nclasses, installed_lit, forbidden_lit, sat_assume_var, sat_solve,
     sat_new_variable, sat_add_var, sat_add, with_classes_relaxed,
     with_temp_clauses, exclusion_kinds, kind_base, kind_source, EmptyDict,
-    relax, resolve, DepsProvider, PkgData, is_excluded
+    relax, resolve, DepsProvider, PkgData, pkg_data_of, is_excluded
 using ..Resolver.Clauses: Clauses, Clause, Lit, literal, clause, packages,
     isbottom, subsumes, absent, resolve_raw, resolve_on, clause_phrase,
     range_phrase, selected, nversions, version_order
@@ -3662,11 +3662,6 @@ function report_problems(d::Diagnosis{P,V}; prob = nothing,
     end
     return bad
 end
-
-# the package data for one package, from whichever shape of it the checker was
-# handed — the same two `resolve` itself takes
-pkg_data_of(data::DepsProvider{P,D}, p::P) where {P,D} = data.provider(p)::D
-pkg_data_of(data::AbstractDict{P,<:PkgData{P}}, p::P) where {P} = data[p]
 
 # (V7), of one conflict's upstream fixes
 function upstream_problems(c::Conflict{P,V}, prob, data) where {P,V}
