@@ -836,8 +836,8 @@ function eliminate_one(items::Vector{Item{P}}, q::P, budget::Ref{Int}) where {P}
     end
     isempty(hit) && return out
     length(hit) > ELIM_ARITY && return nothing
-    sets = minimal_emptying(BitVector[hit[i].clause[q].bits for i in eachindex(hit)],
-                            budget)
+    sets = minimal_emptying(
+        BitVector[(hit[i].clause[q]::Lit).bits for i in eachindex(hit)], budget)
     sets === nothing && return nothing
     for S in sets
         r = resolve_raw(Clause{P}[hit[i].clause for i in S], q)
@@ -1755,7 +1755,7 @@ function meet_at(
     end
     base = trues(nv + 1)
     for i in on_pivot
-        base .&= fcl[i][pivot].bits
+        base .&= (fcl[i][pivot]::Lit).bits
     end
     # trim to an irredundant family, dropping the sides that cost most to read
     # first; nothing that matters can be lost this way, since every fact of the
@@ -1787,7 +1787,7 @@ function meet_at(
         for i in reason
             (m >> bit[i]) & 1 == 1 || continue
             p = facts[i].pkg
-            b = fcl[i][p].bits
+            b = (fcl[i][p]::Lit).bits
             haskey(ant, p) ? (ant[p] .&= b) : (ant[p] = copy(b))
         end
         pairs = Pair{P,Lit}[p => Lit(.~b) for (p, b) in ant]
@@ -2378,7 +2378,7 @@ function diagnose(
     for i in eachindex(plan.owner)
         n = plan.owner[i]
         L = first(alayers[n])
-        mi = findfirst(==(length(gone) + i), mine[n])
+        mi = findfirst(==(length(gone) + i), mine[n])::Int
         fixes = menu_fixes(L, mi, elsewhere(n, 0))
         blocks = Tuple{Vector{Vector{Action{P}}},Vector{Action{P}}}[
             (Vector{Action{P}}[fix_actions(prob, sat, univ, facts[x])
@@ -2859,7 +2859,7 @@ function constraint_phrase(c::Conflict{P,V}, p::P, l::Line{P}) where {P,V}
     lead = join(yours, " and ")
     # every verb below is regular, so agreement is one suffix
     s = length(yours) > 1 ? "" : "s"
-    m = l.clause[p]
+    m = l.clause[p]::Lit
     sel = selected(m)
     any(sel) || return "$lead eliminate$s all versions of $p"
     @assert all(sel[i] for (i, _) in get(c.shadows, p, ())) """
@@ -2953,7 +2953,7 @@ function given_facts(c::Conflict{P,V}, given::Vector{Line{P}}) where {P,V}
         p = ps[1]
         is_heading_fact(c, l) && continue
         p in order || push!(order, p)
-        if !haskey(con, p) && absent(l.clause[p]) && haskey(c.excluded, p)
+        if !haskey(con, p) && absent(l.clause[p]::Lit) && haskey(c.excluded, p)
             con[p] = l
         else
             push!(get!(Vector{Line{P}}, extra, p), l)
@@ -3627,7 +3627,7 @@ function report_problems(d::Diagnosis{P,V}; prob = nothing,
             if sels[i] == sels[j]
                 i < j && push!(bad, "$tag: offers " *
                     join_and(actions_phrase(action_phrase, sort!(
-                        collect(sels[i]); by = a -> (string(a.pkg), a.kind)),
+                        collect(sels[i])::Vector{<:Action}; by = a -> (string(a.pkg), a.kind)),
                         d.sources)) *
                     " twice")
             elseif sels[i] ⊆ sels[j]

@@ -424,7 +424,7 @@ function clause_phrase(c::Clause{P}, vers, names = letters;
     s = subject === nothing || c[subject] === nothing ?
         default_subject(c) : subject
     ants = String[antecedent_phrase(q, c[q], vers, names) for q in ps if q != s]
-    m = c[s]
+    m = c[s]::Lit
     plural = length(ants) > 1
     lead = plural ? join(ants, ", ", " and ") * " together" : ants[1]
     # a consequent with no version in it is no range to name: what the
